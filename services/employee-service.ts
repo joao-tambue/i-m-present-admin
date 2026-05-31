@@ -20,6 +20,26 @@ export type Employee = {
   createdAt: string;
 };
 
+export type WorkSchedule = {
+  id: string;
+  expectedCheckIn: string;
+  expectedCheckOut: string;
+  lateToleranceMinutes: number;
+};
+
+export type EmployeeQRCode = {
+  id: string;
+  status: string;
+  issuedAt: string;
+  revokedAt: string | null;
+};
+
+export type EmployeeDetail = Employee & {
+  role: 'EMPLOYEE';
+  schedule: WorkSchedule | null;
+  qrCode: EmployeeQRCode | null;
+};
+
 export type EmployeeFilters = {
   area?: EmployeeArea;
   isActive?: boolean;
@@ -34,6 +54,18 @@ export type CreateEmployeePayload = {
   phone: string;
   area: EmployeeArea;
   password: string;
+};
+
+export type UpdateEmployeePayload = {
+  name?: string;
+  phone?: string;
+  area?: EmployeeArea;
+};
+
+export type UpsertSchedulePayload = {
+  expectedCheckIn: string;
+  expectedCheckOut: string;
+  lateToleranceMinutes?: number;
 };
 
 type ApiResponse<T> = {
@@ -113,5 +145,45 @@ export const employeeService = {
     );
 
     return data.data.user;
+  },
+
+  async getById(id: string) {
+    const { data } = await api.get<ApiResponse<EmployeeDetail>>(
+      `/coordinator/employees/${id}`,
+    );
+
+    return data.data;
+  },
+
+  async update(id: string, payload: UpdateEmployeePayload) {
+    const { data } = await api.patch<ApiResponse<Employee>>(
+      `/coordinator/employees/${id}`,
+      payload,
+    );
+
+    return data.data;
+  },
+
+  async activate(id: string) {
+    await api.patch<ApiResponse<null>>(`/coordinator/employees/${id}/activate`);
+  },
+
+  async deactivate(id: string) {
+    await api.patch<ApiResponse<null>>(
+      `/coordinator/employees/${id}/deactivate`,
+    );
+  },
+
+  async upsertSchedule(id: string, payload: UpsertSchedulePayload) {
+    const { data } = await api.put<ApiResponse<WorkSchedule>>(
+      `/coordinator/employees/${id}/schedule`,
+      payload,
+    );
+
+    return data.data;
+  },
+
+  async deleteSchedule(id: string) {
+    await api.delete<ApiResponse<null>>(`/coordinator/employees/${id}/schedule`);
   },
 };
