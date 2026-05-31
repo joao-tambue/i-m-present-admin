@@ -1,20 +1,25 @@
 'use client';
 
 import { Header } from '@/components/admin/header';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { Bell, Lock, Users, Palette, Save } from 'lucide-react';
 import { useState } from 'react';
 
+const initialSettings = {
+  notifications: true,
+  emailAlerts: true,
+  weeklyReport: true,
+  darkMode: false,
+};
+
+type SettingsKey = keyof typeof initialSettings;
+
 export default function SettingsPage() {
   const { coordinator } = useAuth();
-  const [settings, setSettings] = useState({
-    notifications: true,
-    emailAlerts: true,
-    weeklyReport: true,
-    darkMode: false,
-  });
+  const userLabel = coordinator?.role === 'COORDINATOR' ? 'Coordenador' : coordinator?.area;
+  const [settings, setSettings] = useState(initialSettings);
 
-  const handleToggle = (key: string) => {
+  const handleToggle = (key: SettingsKey) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
@@ -68,11 +73,11 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Departamento
+                Perfil
               </label>
               <input
                 type="text"
-                value={coordinator?.department || ''}
+                value={userLabel || ''}
                 readOnly
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
               />

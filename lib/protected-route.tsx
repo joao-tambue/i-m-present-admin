@@ -1,20 +1,36 @@
 'use client';
 
-import { useAuth } from './auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const {
+    fetchMe,
+    hasHydrated,
+    isAuthenticated,
+    isCheckingSession,
+    isLoading,
+    token,
+  } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (!hasHydrated) return;
+
+    if (token) {
+      fetchMe().catch(() => {
+        router.push('/login');
+      });
+      return;
+    }
+
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [fetchMe, hasHydrated, isAuthenticated, isLoading, router, token]);
 
-  if (isLoading) {
+  if (!hasHydrated || isLoading || isCheckingSession) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 to-purple-800">
         <div className="text-center">

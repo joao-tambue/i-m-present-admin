@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { Bell, User, Menu } from 'lucide-react';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
 
 export function Header({ title, description }: HeaderProps) {
   const { coordinator } = useAuth();
+  const userLabel = coordinator?.role === 'COORDINATOR' ? 'Coordenador' : coordinator?.area;
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -35,7 +36,9 @@ export function Header({ title, description }: HeaderProps) {
                 <p className="text-sm font-medium text-gray-900">
                   {coordinator.name}
                 </p>
-                <p className="text-xs text-gray-600">{coordinator.department}</p>
+                {userLabel && (
+                  <p className="text-xs text-gray-600">{userLabel}</p>
+                )}
               </div>
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
                 <User className="w-5 h-5" />

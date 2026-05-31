@@ -13,7 +13,7 @@ export interface Attendance {
   id: string;
   employeeId: string;
   date: string;
-  checkInTime: string;
+  checkInTime: string | null;
   checkOutTime: string | null;
   status: 'present' | 'late' | 'absent' | 'half-day';
 }
