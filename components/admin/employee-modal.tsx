@@ -1,33 +1,92 @@
 'use client';
 
-import { Employee } from '@/lib/mock-data';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { useEmployees } from '@/hooks/use-employees';
+import {
+  Employee,
+  employeeAreaLabels,
+  employeeAreas,
+} from '@/services/employee-service';
 
 interface EmployeeModalProps {
   isOpen: boolean;
   employee: Employee | null;
   onClose: () => void;
+  onSaved?: () => void;
 }
 
-export function EmployeeModal({ isOpen, employee, onClose }: EmployeeModalProps) {
-  const [formData, setFormData] = useState<Partial<Employee>>(
-    employee || {}
-  );
+const employeeSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres.'),
+  email: z.string().email('Informe um email válido.'),
+  phone: z
+    .string()
+    .min(9, 'Número inválido.')
+    .max(15, 'Número inválido.')
+    .regex(/^\+?[\d\s\-()]+$/, 'Número de telefone inválido.'),
+  area: z.enum(employeeAreas, {
+    errorMap: () => ({ message: 'Selecione uma área.' }),
+  }),
+  password: z
+    .string()
+    .min(8, 'A senha deve ter pelo menos 8 caracteres.')
+    .regex(/[A-Z]/, 'A senha deve conter pelo menos uma letra maiúscula.')
+    .regex(/[0-9]/, 'A senha deve conter pelo menos um número.'),
+});
+
+type EmployeeFormData = z.infer<typeof employeeSchema>;
+
+export function EmployeeModal({
+  isOpen,
+  employee,
+  onClose,
+  onSaved,
+}: EmployeeModalProps) {
+  const { clearError, createEmployee, error, isCreating } = useEmployees();
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+    reset,
+  } = useForm<EmployeeFormData>({
+    resolver: zodResolver(employeeSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      area: 'DEV_FULLSTACK',
+      password: '',
+    },
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    clearError();
+    reset({
+      name: employee?.name ?? '',
+      email: employee?.email ?? '',
+      phone: employee?.phone ?? '',
+      area: employee?.area ?? 'DEV_FULLSTACK',
+      password: '',
+    });
+  }, [clearError, employee, isOpen, reset]);
 
   if (!isOpen) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const onSubmit = async (data: EmployeeFormData) => {
+    if (employee) return;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('[v0] Saving employee:', formData);
-    onClose();
+    try {
+      await createEmployee(data);
+      onSaved?.();
+      onClose();
+    } catch {
+      // Store and toast already expose the error.
+    }
   };
 
   return (
@@ -36,7 +95,7 @@ export function EmployeeModal({ isOpen, employee, onClose }: EmployeeModalProps)
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">
-            {employee ? 'Editar Funcionário' : 'Novo Funcionário'}
+            {employee ? 'Detalhes do Funcionário' : 'Novo Funcionário'}
           </h2>
           <button
             onClick={onClose}
@@ -47,19 +106,26 @@ export function EmployeeModal({ isOpen, employee, onClose }: EmployeeModalProps)
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-sm font-medium text-red-700">{error}</p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nome
             </label>
             <input
               type="text"
-              name="name"
-              value={formData.name || ''}
-              onChange={handleChange}
+              disabled={!!employee}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              required
+              {...register('name')}
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
           </div>
 
           <div>
@@ -68,62 +134,69 @@ export function EmployeeModal({ isOpen, employee, onClose }: EmployeeModalProps)
             </label>
             <input
               type="email"
-              name="email"
-              value={formData.email || ''}
-              onChange={handleChange}
+              disabled={!!employee}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              required
+              {...register('email')}
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Departamento
-            </label>
-            <select
-              name="department"
-              value={formData.department || ''}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              required
-            >
-              <option value="">Selecione um departamento</option>
-              <option value="Vendas">Vendas</option>
-              <option value="TI">TI</option>
-              <option value="RH">RH</option>
-              <option value="Financeiro">Financeiro</option>
-              <option value="Marketing">Marketing</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Posição
+              Telefone
             </label>
             <input
-              type="text"
-              name="position"
-              value={formData.position || ''}
-              onChange={handleChange}
+              type="tel"
+              disabled={!!employee}
+              placeholder="+244923456789"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              required
+              {...register('phone')}
             />
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
+              Área
             </label>
             <select
-              name="status"
-              value={formData.status || 'active'}
-              onChange={handleChange}
+              disabled={!!employee}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              {...register('area')}
             >
-              <option value="active">Ativo</option>
-              <option value="inactive">Inativo</option>
+              {employeeAreas.map((area) => (
+                <option key={area} value={area}>
+                  {employeeAreaLabels[area]}
+                </option>
+              ))}
             </select>
+            {errors.area && (
+              <p className="mt-1 text-sm text-red-600">{errors.area.message}</p>
+            )}
           </div>
+
+          {!employee && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Senha
+              </label>
+              <input
+                type="password"
+                placeholder="Senha123"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                {...register('password')}
+              />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="flex gap-3 pt-4">
@@ -134,12 +207,15 @@ export function EmployeeModal({ isOpen, employee, onClose }: EmployeeModalProps)
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:shadow-lg transition-all"
-            >
-              Salvar
-            </button>
+            {!employee && (
+              <button
+                type="submit"
+                disabled={isCreating}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isCreating ? 'Salvando...' : 'Salvar'}
+              </button>
+            )}
           </div>
         </form>
       </div>

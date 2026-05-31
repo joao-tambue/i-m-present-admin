@@ -2,14 +2,13 @@
 
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Employee } from '@/lib/mock-data';
 import { EmployeeModal } from './employee-modal';
 
 interface AddEmployeeButtonProps {
-  onAdd?: (employee: Employee) => void;
+  onCreated?: () => void;
 }
 
-export function AddEmployeeButton({ onAdd }: AddEmployeeButtonProps) {
+export function AddEmployeeButton({ onCreated }: AddEmployeeButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -26,6 +25,7 @@ export function AddEmployeeButton({ onAdd }: AddEmployeeButtonProps) {
         isOpen={isModalOpen}
         employee={null}
         onClose={() => setIsModalOpen(false)}
+        onSaved={onCreated}
       />
     </>
   );
