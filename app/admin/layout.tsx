@@ -36,7 +36,7 @@ export default function AdminLayout({
 
   if (!hasHydrated || isCheckingSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-900 to-purple-800">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-purple-900 to-purple-800">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-300 border-t-white"></div>
           <p className="text-lg font-medium text-white">Carregando...</p>
@@ -50,9 +50,12 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
+  <div className="bg-gray-50">
+    <Sidebar />
+
+    <main className="ml-64 min-h-screen flex-1">
       {children}
-    </div>
-  );
+    </main>
+  </div>
+);
 }

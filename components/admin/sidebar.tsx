@@ -40,10 +40,10 @@ export function Sidebar() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-purple-900 to-purple-800 text-white flex flex-col h-screen sticky top-0">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-purple-900 to-purple-800 text-white flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-purple-700">
-        <h1 className="text-2xl font-bold">SmartFlow</h1>
+        <h1 className="text-2xl font-bold">I'm Present</h1>
         <p className="text-purple-300 text-sm mt-1">Gerenciamento de Presença</p>
       </div>
 
