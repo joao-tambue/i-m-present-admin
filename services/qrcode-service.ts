@@ -45,6 +45,23 @@ type RegenerateQRCodeResponse = {
   svg: string;
 };
 
+type QRCodeDetailResponse = {
+  id: string;
+  token: string;
+  imageDataUrl: string;
+  svg: string;
+  status: QRCodeStatus;
+  issuedAt: string;
+  revokedAt: string | null;
+  employee: {
+    id: string;
+    name: string;
+    email: string;
+    area: string;
+    isActive: boolean;
+  };
+};
+
 export function getQRCodeError(error: unknown) {
   if (error instanceof AxiosError) {
     const message = error.response?.data?.message;
@@ -76,7 +93,7 @@ export const qrcodeService = {
   },
 
   async getEmployeeQRCode(employeeId: string) {
-    const { data } = await api.get<ApiResponse<EmployeeQRCode>>(
+    const { data } = await api.get<ApiResponse<QRCodeDetailResponse>>(
       `/qr-code/employees/${employeeId}`,
     );
 

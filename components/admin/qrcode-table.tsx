@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { QRCodeWithEmployee } from '@/services/qrcode-service';
-import { Trash2, RotateCcw, Loader } from 'lucide-react';
+import { Trash2, RotateCcw, Loader, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { ViewQRCodeModal } from './view-qrcode-modal';
 import { QRCodeActionDialog } from './qrcode-action-dialog';
 
 type QRCodeTableProps = {
@@ -26,6 +27,11 @@ export function QRCodeTable({
 }: QRCodeTableProps) {
   const [actionDialog, setActionDialog] = useState<{
     type: 'regenerate' | 'revoke';
+    employeeId: string;
+    employeeName: string;
+  } | null>(null);
+
+  const [viewQRCode, setViewQRCode] = useState<{
     employeeId: string;
     employeeName: string;
   } | null>(null);
@@ -119,6 +125,18 @@ export function QRCodeTable({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() =>
+                        setViewQRCode({
+                          employeeId: qrCode.employeeId,
+                          employeeName: qrCode.employeeName,
+                        })
+                      }
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Ver QR Code"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() =>
                         setActionDialog({
                           type: 'regenerate',
                           employeeId: qrCode.employeeId,
@@ -167,6 +185,15 @@ export function QRCodeTable({
           </tbody>
         </table>
       </div>
+
+      {viewQRCode && (
+        <ViewQRCodeModal
+          employeeId={viewQRCode.employeeId}
+          employeeName={viewQRCode.employeeName}
+          isOpen={true}
+          onClose={() => setViewQRCode(null)}
+        />
+      )}
 
       {actionDialog && (
         <QRCodeActionDialog
