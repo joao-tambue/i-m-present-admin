@@ -1,91 +1,77 @@
-# I'm Present - Sistema de Gerenciamento de Presença
+# Sistema de Controle de Ponto (TLS)
 
-Um painel administrativo completo para coordenadores gerenciarem presença de funcionários com QR code, desenvolvido com Next.js, React e Tailwind CSS.
+Este é um projeto completo de controle de ponto e gestão de presença via QR Code, desenvolvido com tecnologias modernas de Frontend (Next.js) e Backend (Node.js/Express). 
 
-## Funcionalidades
+O sistema é dividido em três módulos principais:
+1. **Admin (`/admin`)**: Aplicação web para coordenadores e administradores.
+2. **Funcionario App (`/funcionario-app`)**: Aplicação web/mobile para uso dos funcionários.
+3. **Backend API (`/qr-code`)**: API RESTful que gerencia toda a regra de negócio e banco de dados.
 
-- **Autenticação**: Login seguro para coordenadores
-- **Dashboard**: Visão geral com estatísticas em tempo real
-- **Gerenciamento de Funcionários**: CRUD completo com status ativo/inativo
-- **Controle de Presenças**: Registro e acompanhamento de entrada/saída
-- **Relatórios**: Gráficos e análises detalhadas com Recharts
-- **Configurações**: Personalizações de perfil, notificações e segurança
-- **Design Responsivo**: Interface adaptada para mobile, tablet e desktop
+---
 
-## Arquitetura
+## 🏗 Arquitetura do Sistema
 
-### Estrutura de Pastas
+### 1. `admin` (Painel Administrativo)
+Aplicação frontend desenvolvida para permitir que gestores e coordenadores administrem o sistema.
+- **Tecnologias**: Next.js 14+, React 19, Tailwind CSS, Shadcn UI, Zustand (gerenciamento de estado), React Hook Form, Zod, Axios.
+- **Principais Funcionalidades**:
+  - Dashboard geral com métricas de presença.
+  - Gestão de funcionários (Criação, Edição, Inativação).
+  - Acompanhamento de relatórios de ponto e histórico de presenças.
+  - Definição de horários de trabalho (`workSchedule`) e tolerâncias.
 
-```
-/vercel/share/v0-project/
-├── app/
-│   ├── admin/               # Páginas protegidas do painel
-│   │   ├── dashboard/       # Dashboard principal
-│   │   ├── employees/       # Gerenciamento de funcionários
-│   │   ├── attendance/      # Controle de presenças
-│   │   ├── reports/         # Relatórios e análises
-│   │   └── settings/        # Configurações
-│   ├── login/              # Página de autenticação
-│   ├── layout.tsx          # Layout raiz com AuthProvider
-│   ├── page.tsx            # Redirecionamento para login
-│   └── globals.css         # Estilos globais
-├── components/
-│   └── admin/              # Componentes reutilizáveis
-│       ├── sidebar.tsx     # Navegação lateral
-│       ├── header.tsx      # Cabeçalho com perfil
-│       ├── stat-card.tsx   # Cards de estatísticas
-│       ├── employees-table.tsx
-│       ├── employee-modal.tsx
-│       ├── attendance-table.tsx
-│       └── add-employee-button.tsx
-├── lib/
-│   ├── mock-data.ts        # Dados simulados
-│   ├── auth-context.tsx    # Contexto de autenticação
-│   ├── theme.ts            # Configuração de cores
-│   └── protected-route.tsx  # Proteção de rotas
-└── tailwind.config.ts      # Configuração do Tailwind
-```
+### 2. `funcionario-app` (Aplicativo do Funcionário)
+Aplicação voltada exclusivamente para os funcionários registrarem e acompanharem seus pontos.
+- **Tecnologias**: Next.js 14+, React 19, Tailwind CSS, Shadcn UI, Zustand, HTML5-QRCode (para leitura de QR codes), Axios.
+- **Principais Funcionalidades**:
+  - Login individual do funcionário.
+  - Visualização de um QR Code único para check-in/check-out.
+  - Leitura de QR Codes (se configurado como totem).
+  - Histórico pessoal de presenças e atrasos.
+  - Visualização de horários agendados.
 
-## Design
+### 3. `qr-code` (Backend / API REST)
+Motor de regras de negócio, autenticação e comunicação com o banco de dados.
+- **Tecnologias**: Node.js, Express, TypeScript, Prisma ORM, PostgreSQL, JWT (JSON Web Tokens), Bcryptjs, Swagger (documentação da API).
+- **Principais Funcionalidades**:
+  - Autenticação JWT baseada em Roles (`COORDINATOR`, `EMPLOYEE`).
+  - Geração e Validação de QR Codes (`EmployeeQRCode`).
+  - Lógica complexa de registro de ponto (`AttendanceRecord`), lidando com tolerância de atrasos e status (Presente, Atrasado, Faltou, Incompleto).
+  - Documentação da API com Swagger UI.
 
-### Paleta de Cores
+---
 
-- **Primary**: Purple-600 (#9333ea)
-- **Secondary**: Pink-500 (#ec4899)
-- **Background**: White (#ffffff)
-- **Surface**: Gray-50 (#f9f7f4)
-- **Text**: Gray-800 (#1f2937)
+## 🚀 Como Executar o Projeto Localmente
 
-## Autenticação
+### Pré-requisitos
+- Node.js (v18 ou superior)
+- PostgreSQL (rodando localmente ou via Docker)
+- Gerenciador de pacotes (`npm` ou `pnpm`)
 
-### Fluxo de Login
+### Configurando o Backend (`/qr-code`)
+1. Acesse o diretório: `cd qr-code`
+2. Instale as dependências: `npm install`
+3. Crie um arquivo `.env` na raiz da pasta baseado no `.env.example` com a URL do seu banco de dados PostgreSQL.
+4. Execute as migrations do Prisma: `npx prisma migrate dev`
+5. Execute as seeds (opcional, para criar um admin padrão): `npx tsx prisma/seed.ts`
+6. Inicie o servidor em modo de desenvolvimento: `npm run dev`
 
-1. Usuário acessa `/login`
-2. Insere email e senha
-3. Sistema valida credenciais
-4. Redireciona para `/admin/dashboard`
+### Configurando o Frontend Admin (`/admin`)
+1. Acesse o diretório: `cd admin`
+2. Instale as dependências: `npm install` ou `pnpm install`
+3. Configure o arquivo `.env` com a URL da API (ex: `NEXT_PUBLIC_API_URL=http://localhost:3000`)
+4. Inicie a aplicação: `npm run dev`
 
-### Credenciais de Demonstração
+### Configurando o Frontend Funcionário (`/funcionario-app`)
+1. Acesse o diretório: `cd funcionario-app`
+2. Instale as dependências: `npm install` ou `pnpm install`
+3. Configure o arquivo `.env` com a URL da API.
+4. Inicie a aplicação: `npm run dev`
 
-- **Email**: `demo@smartflow.com`
-- **Senha**: `123456`
+---
 
-### Proteção de Rotas
-
-- Todas as rotas em `/admin/*` requerem autenticação
-- Usuário não autenticado é redirecionado para `/login`
-- Contexto `AuthProvider` gerencia estado global
-
-## Como Usar
-
-### Instalação
-
-```bash
-# Instalar dependências
-pnpm install
-
-# Executar servidor de desenvolvimento
-pnpm dev
-```
-
-Acesse `http://localhost:3000` no navegador.
+## 🔒 Regras de Negócio e Segurança
+- Senhas são criptografadas via **Bcrypt** no banco de dados.
+- A autenticação é stateless via **JWT**.
+- O QR Code do funcionário pode ser revogado e um novo pode ser gerado caso necessário, prevenindo fraudes.
+- A presença possui uma regra estrita de validação: "Check-in" seguido de "Check-out" no mesmo dia. Tolerâncias de minutos são parametrizadas no perfil do funcionário.
